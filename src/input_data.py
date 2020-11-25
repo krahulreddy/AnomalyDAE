@@ -3,6 +3,8 @@ import scipy.io
 import inspect
 import tensorflow as tf
 from preprocessing import preprocess_graph, sparse_to_tuple
+from load import *
+import numpy as np
 
 flags = tf.app.flags
 FLAGS = flags.FLAGS
@@ -18,9 +20,11 @@ def parse_index_file(filename):
 def load_data2(data_source):
     data = scipy.io.loadmat("../data/{}/{}.mat".format(data_source,data_source))
     labels = data["Label"]
-
+    print(labels.shape)
     attr_ = data["Attributes"]
+    print(attr_.toarray().shape)
     attributes = sp.csr_matrix(attr_)
+#    print(attributes)
     network = sp.lil_matrix(data["Network"])
 
     return network, attributes, labels
@@ -38,8 +42,13 @@ def load_data(data_source):
 
 def format_data(data_source):
 
-    adj, features, labels = load_data2(data_source)
-
+    adj = load_adj('../data/facebook/107')
+    features = load_attr('../data/facebook/107')
+    labels = np.ones(adj.shape[0])
+#    adj, features, labels = load_data2(data_source)
+#    print(adj)
+    print(type(adj), type(features))
+    print(adj.shape, features.shape)
     if FLAGS.features == 0:
         features = sp.identity(features.shape[0])  # featureless
 

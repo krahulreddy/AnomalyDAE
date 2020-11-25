@@ -51,6 +51,7 @@ class AnomalyDetectionRunner():
                               labels_structure=tf.sparse_tensor_to_dense(placeholders['adj_orig']), alpha=FLAGS.alpha)
 
         elif model_str == 'AnomalyDAE':
+            print(placeholders, num_features, num_nodes, features_nonzero, self.decoder_act)
             model = AnomalyDAE(placeholders, num_features, num_nodes, features_nonzero, self.decoder_act)
             opt = OptimizerDAE(preds_attribute=model.attribute_reconstructions,
                                labels_attribute=tf.sparse_tensor_to_dense(placeholders['features']),
@@ -71,9 +72,11 @@ class AnomalyDetectionRunner():
                                                                 feas['adj_label'],
                                                                 feas['features'],
                                                                 placeholders, feas['adj'])
+            print(train_loss, loss_struc, loss_attr, rec_error)
 
-            if epoch % 1 == 0:
-                y_true = [label[0] for label in feas['labels']]
+            if epoch % 1 != 0:
+
+#                y_true = [label[0] for label in feas['labels']]
 
                 auc=0
                 try:
