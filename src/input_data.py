@@ -1,3 +1,4 @@
+from sklearn.preprocessing import normalize
 import scipy.sparse as sp
 import scipy.io
 import inspect
@@ -23,8 +24,9 @@ def load_data2(data_source):
     print(labels.shape)
     attr_ = data["Attributes"]
     print(attr_.toarray().shape)
+    print(attr_[:5])
     attributes = sp.csr_matrix(attr_)
-#    print(attributes)
+    print(attributes[:5])
     network = sp.lil_matrix(data["Network"])
 
     return network, attributes, labels
@@ -33,7 +35,7 @@ def load_data2(data_source):
 def load_data(data_source):
     data = scipy.io.loadmat("../data/{}.mat".format(data_source))
     labels = data["gnd"]
-    labels = data["Label"]
+#    labels = data["Label"]
 
     attributes = sp.csr_matrix(data["X"])
     network = sp.lil_matrix(data["A"])
@@ -42,13 +44,16 @@ def load_data(data_source):
 
 def format_data(data_source):
 
-    adj = load_adj('../data/facebook/107')
-    features = load_attr('../data/facebook/107')
-    labels = np.ones(adj.shape[0])
+#    adj = load_adj('../data/facebook/0')
+#    features = load_attr('../data/facebook/0')
+#    labels = np.ones(adj.shape[0])
 #    adj, features, labels = load_data2(data_source)
+    adj, features, labels = load_data('twitter')
 #    print(adj)
     print(type(adj), type(features))
     print(adj.shape, features.shape)
+    features = normalize(features,  norm='l1', axis=1)
+    print(features[:5])
     if FLAGS.features == 0:
         features = sp.identity(features.shape[0])  # featureless
 

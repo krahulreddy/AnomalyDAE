@@ -6,7 +6,7 @@ os.environ['CUDA_VISIBLE_DEVICES'] = ""
 
 from constructor import get_placeholder, update
 from input_data import format_data
-from sklearn.metrics import roc_auc_score
+from sklearn.metrics import roc_auc_score, accuracy_score, confusion_matrix
 from model import *
 from optimizer import *
 
@@ -74,9 +74,9 @@ class AnomalyDetectionRunner():
                                                                 placeholders, feas['adj'])
             print(train_loss, loss_struc, loss_attr, rec_error)
 
-            if epoch % 1 != 0:
+            if epoch % 1 == 0:
 
-#                y_true = [label[0] for label in feas['labels']]
+                y_true = [label[0] for label in feas['labels']]
 
                 auc=0
                 try:
@@ -88,7 +88,7 @@ class AnomalyDetectionRunner():
 
                 except Exception:
                     print("[ERROR] for auc calculation!!!")
-
+                print("Accuracy:", accuracy_score(y_true, scores.round()))
                 print("Epoch:", '%04d' % (epoch),
                       "AUC={:.5f}".format(round(auc,4)),
                       "train_loss={:.5f}".format(train_loss),
@@ -99,7 +99,5 @@ class AnomalyDetectionRunner():
                 writer.add_scalar('loss_struc', loss_struc, epoch)
                 writer.add_scalar('loss_attr', loss_attr, epoch)
                 writer.add_scalar('auc', auc, epoch)
-
-
-
-
+                anomaly_count = sum(y_true)
+                print("There are", anomaly_count,  "Anomalous nodes:", np.sort(scores.argsort()[-anomaly_count:]))
