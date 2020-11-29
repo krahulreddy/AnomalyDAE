@@ -24,7 +24,8 @@ def precision_AT_K(actual, predicted, k, num_anomaly):
     return round(prec, 4), round(rec, 4)
 
 class AnomalyDetectionRunner():
-    def __init__(self, settings):
+    def __init__(self, settings, k=1):
+        self.k = k
         self.data_name = settings['data_name']
         self.iteration = settings['iterations']
         self.model = settings['model']
@@ -52,7 +53,7 @@ class AnomalyDetectionRunner():
 
         elif model_str == 'AnomalyDAE':
             print(placeholders, num_features, num_nodes, features_nonzero, self.decoder_act)
-            model = AnomalyDAE(placeholders, num_features, num_nodes, features_nonzero, self.decoder_act)
+            model = AnomalyDAE(placeholders, num_features, num_nodes, features_nonzero, self.decoder_act, self.k)
             opt = OptimizerDAE(preds_attribute=model.attribute_reconstructions,
                                labels_attribute=tf.sparse_tensor_to_dense(placeholders['features']),
                                preds_structure=model.structure_reconstructions,
@@ -72,7 +73,7 @@ class AnomalyDetectionRunner():
                                                                 feas['adj_label'],
                                                                 feas['features'],
                                                                 placeholders, feas['adj'])
-            print(train_loss, loss_struc, loss_attr, rec_error)
+#            print(train_loss, loss_struc, loss_attr, rec_error)
 
             if epoch % 1 == 0:
 
@@ -88,12 +89,12 @@ class AnomalyDetectionRunner():
 
                 except Exception:
                     print("[ERROR] for auc calculation!!!")
-                print("Accuracy:", accuracy_score(y_true, scores.round()))
+#                print("Accuracy:", accuracy_score(y_true, scores.round()))
                 print("Epoch:", '%04d' % (epoch),
                       "AUC={:.5f}".format(round(auc,4)),
-                      "train_loss={:.5f}".format(train_loss),
-                      "loss_struc={:.5f}".format(loss_struc),
-                      "loss_attr={:.5f}".format(loss_attr))
+                      "train_loss={:.5f}".format(train_loss))
+#                      "loss_struc={:.5f}".format(loss_struc),
+#                      "loss_attr={:.5f}".format(loss_attr))
 
                 writer.add_scalar('loss_total', train_loss, epoch)
                 writer.add_scalar('loss_struc', loss_struc, epoch)

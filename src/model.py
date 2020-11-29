@@ -102,9 +102,9 @@ class GCNModelAE(Model):
 
 class AnomalyDAE(Model):
     def __init__(self, placeholders, num_features, num_nodes, features_nonzero,
-                 decoder_act=[tf.nn.sigmoid, tf.nn.sigmoid], **kwargs):
+                 decoder_act=[tf.nn.sigmoid, tf.nn.sigmoid], k=1, **kwargs):
         super(AnomalyDAE, self).__init__(**kwargs)
-
+        self.k = k
         self.inputs = placeholders['features']
         self.input_dim = num_features
         self.features_nonzero = features_nonzero
@@ -123,7 +123,7 @@ class AnomalyDAE(Model):
 
         self.hidden1 = tf.expand_dims(self.hidden1, 1)
         attns = []
-        k=1
+        k=self.k
         for _ in range(k):
             attns.append(NodeAttention(bias_mat=self.adj, nb_nodes=self.n_samples,
                                        # act=tf.nn.relu,

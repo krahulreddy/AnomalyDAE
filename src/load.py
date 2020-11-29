@@ -1,17 +1,29 @@
+import random
 import scipy.sparse as sp
 import scipy.io
-
 
 def load_adj(filename):
     a = []
     b = []
     c = []
+    edges = []
     with open(filename + '.edges') as f:
         for line in f:
             edge = [int(x) for x in line.split()]
+            edges.append((edge[0], edge[1]))
             a.append(edge[0])
             b.append(edge[1])
             c.append(1)
+
+    k = 2 + len(set(a))//10
+    samples = random.sample(a, k)
+    for x in samples:
+        for y in samples:
+            if(x!=y and (x,y) not in edges):
+                a.append(x)
+                b.append(y)
+                c.append(1)
+
     adj = sp.coo_matrix((c, (a, b))).toarray()
     return sp.lil_matrix(adj)
 

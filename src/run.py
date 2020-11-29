@@ -17,8 +17,8 @@ embed_dim=128
 print("### embed_dim=", embed_dim)
 
 flags.DEFINE_integer('discriminator_out', 0, 'discriminator_out.')
-flags.DEFINE_float('discriminator_learning_rate', 0.001, 'Initial learning rate.')
-flags.DEFINE_float('learning_rate', 0.001, 'Initial learning rate.')
+flags.DEFINE_float('discriminator_learning_rate', 0.01, 'Initial learning rate.')
+flags.DEFINE_float('learning_rate', 0.01, 'Initial learning rate.')
 flags.DEFINE_integer('hidden1', embed_dim*2, 'Number of units in hidden layer 1.')
 flags.DEFINE_integer('hidden2', embed_dim, 'Number of units in hidden layer 2.')
 flags.DEFINE_float('weight_decay', 0., 'Weight for L2 loss on embedding matrix.')
@@ -51,8 +51,8 @@ task = 'anomaly_detection'
 for dataset_str in data_list:
     if dataset_str=='BlogCatalog':
         # eta_list = [1,3,5]
-        eta_list = [5]
-        theta_list = [40]
+        eta_list = [1]
+        theta_list = [1]
         decoder_act = [tf.nn.sigmoid, lambda x: x] # [structure_act, attribute_act]
         FLAGS.iterations=180
     elif dataset_str=='Flickr':
@@ -69,35 +69,37 @@ for dataset_str in data_list:
     else:
         print("[ERROR] no such dataset: {}".format(dataset_str))
         continue
+    ks = [1, 2, 3, 4, 5]
+    for k in ks:
+        for eta in eta_list:
+            for theta in theta_list:
+                for alpha in alpha_list:
+                    print(k)
+                    FLAGS.eta=eta
+                    FLAGS.theta=theta
+                    FLAGS.alpha=alpha
 
-    for eta in eta_list:
-        for theta in theta_list:
-            for alpha in alpha_list:
-                FLAGS.eta=eta
-                FLAGS.theta=theta
-                FLAGS.alpha=alpha
+                    settings = {'data_name': dataset_str,
+                                'iterations': FLAGS.iterations,
+                                'model' : model,
+                                'decoder_act': decoder_act}
 
-                settings = {'data_name': dataset_str,
-                            'iterations': FLAGS.iterations,
-                            'model' : model,
-                            'decoder_act': decoder_act}
+                    results_dir = os.path.sep.join(['results', dataset_str, task, model])
+                    log_dir = os.path.sep.join(['logs', dataset_str, task, model, '{}_{}_{}'.format(eta, theta, alpha)])
 
-                results_dir = os.path.sep.join(['results', dataset_str, task, model])
-                log_dir = os.path.sep.join(['logs', dataset_str, task, model, '{}_{}_{}'.format(eta, theta, alpha)])
+                    if not os.path.exists(results_dir):
+                        os.makedirs(results_dir)
 
-                if not os.path.exists(results_dir):
-                    os.makedirs(results_dir)
+                    if not os.path.exists(log_dir):
+                        os.makedirs(log_dir)
 
-                if not os.path.exists(log_dir):
-                    os.makedirs(log_dir)
+                    file2print = '{}/{}_{}_{}_{}_{}.json'.format(results_dir, dataset_str,
+                                                                  eta, theta, alpha, embed_dim)
 
-                file2print = '{}/{}_{}_{}_{}_{}.json'.format(results_dir, dataset_str,
-                                                              eta, theta, alpha, embed_dim)
+                    runner = None
+                    if task == 'anomaly_detection':
+                        runner = AnomalyDetectionRunner(settings, k)
 
-                runner = None
-                if task == 'anomaly_detection':
-                    runner = AnomalyDetectionRunner(settings)
+                    writer = SummaryWriter(log_dir)
 
-                writer = SummaryWriter(log_dir)
-
-                runner.erun(writer)
+                    runner.erun(writer)
